@@ -21,9 +21,10 @@ The Chief Executive attends LegCo during CE's Question and Answer Sessions on th
 CE's Question and Answer Sessions and CE's Question Time. When putting questions to the CE, lawmakers
 often take this opportunity to express their views about the administration and/or the CE.
 
-This analysis matches sentiment terms from the Bing lexicon (English) and the National Taiwan University
-Semantic Dictionary with the speech text and caluclate the proportion of positive and negative terms used.
-This can provide a glimpse of the relationship between the legislature and the executive body.
+This analysis matches sentiment terms from the Bing lexicon (for English text) and the National Taiwan
+University Semantic Dictionary (for Chinese text) with the speech text and caluclate the proportion of positive and
+negative terms used. This can provide a glimpse of the relationship between the legislature and 
+the executive body.
 
 ## What you need
 You need the R packages [elgarteo/legco](https://github.com/elgarteo/legco) and 

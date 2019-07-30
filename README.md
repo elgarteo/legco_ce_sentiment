@@ -31,7 +31,3 @@ You need the R packages [elgarteo/legco](https://github.com/elgarteo/legco) and
 [elgarteo/legcoplus](https://github.com/elgarteo/legcoplus) to fetch data from the LegCo API.
 
 All other packages are obtainable from CRAN.
-
-## Reference
-The code to share a legend within mulitple graphs is taking reference to this 
-[ggplot2 wiki page](https://github.com/tidyverse/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs).

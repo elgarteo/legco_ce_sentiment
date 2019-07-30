@@ -1,10 +1,10 @@
 # Sentiment Analysis of LegCo Members' Speech on Chief Executive
-Sentiment analysis on lawmakers' speeches in Chief Executive-attending Hong Kong Legislative Council meetings
+Sentiment analysis on lawmakers' speeches in Chief Executive-attended Hong Kong Legislative Council meetings
 
 ## What it does
 A sentiment analysis on the words used by lawmakers in LegCo meetings that the Chief Executive attendeds.
 The analysis examines data from the Fifth LegCo (2012-2016) and the Sixth LegCo (2016-2019) up until May 2019,
-which stretches acorss the CE terms of Leung Chun-ying and Carrie Lam.
+which stretches across the CE terms of Leung Chun-ying and Carrie Lam.
 
 ## What they are
 * **fetch_data.R:** Scripts to fetch a lawmaker list and the speech text from the LegCo API and and export as

@@ -1,4 +1,4 @@
-# legco_ce_sentiment
+# Sentiment Analysis of LegCo Members' Speech on Chief Executive
 Sentiment analysis on lawmakers' speeches in Chief Executive-attending Hong Kong Legislative Council meetings
 
 ## What it does

@@ -7,6 +7,9 @@ library(stringr)
 library(magrittr)
 
 ###-----Functions-----
+## Define Chinese Segmentation Engine
+segmentCN <- worker()
+
 ## Functions to remove stopwords and seperate into terms
 processing <- function(doc) {
   # split and clean text
@@ -25,7 +28,7 @@ processing <- function(doc) {
   }
   # Chinese words
   if (length(doc)) {
-    doc %<>% segmentCN(., package = "jiebaR") %>%
+    doc %<>% segmentCN[.] %>%
       unlist %>% removeWords(., stopwords_zh) %>% removeNumbers
   }
   # sentiment analysis

@@ -10,10 +10,10 @@ which stretches across the CE terms of Leung Chun-ying and Carrie Lam.
 * **fetch_data.R:** Scripts to fetch a lawmaker list and the speech text from the LegCo API and and export as
 *cy_legco_text.rds*, *cl_legco_text.rds* and *members_name.rds*
 * **preprocessing.R:** Functions to compute the sentiment of the text
-* **sentiment_member.R:** Scripts to compute sentiment of each lawmaker's speech and plot bar graphs as *cy_en.png*,
-*cy_zh.png*, *cl_en.png* and *cl_zh.png*
+* **sentiment_member.R:** Scripts to compute sentiment of each lawmaker's speech and plot bar graphs in English
+and Chinese as *cy_en.png*, *cy_zh.png*, *cl_en.png* and *cl_zh.png*
 * **sentiment_timetrend.R:** Scripts to compute sentiment the speech the overall sentiment of each meeting and
-plot time trend as *timetrend_en.png* and *timetrend_zh.png*.
+plot time trend in English and Chinese as *timetrend_en.png* and *timetrend_zh.png*.
 * **pro_est5.rds** & **pro_est6.rds**: Lists of pro-establishment lawmakers in the Fifth and Sixth LegCo
 
 ## How it works

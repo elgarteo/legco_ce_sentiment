@@ -6,16 +6,6 @@ library(magrittr)
 
 source("preprocessing.R", encoding = "UTF-8")
 
-###-----Function-----
-## Function to extract legend to share between graphs
-# from https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-g_legend <- function(a.gplot) {
-  tmp <- ggplot_gtable(ggplot_build(a.gplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)
-}
-
 ###-----CY Leung-----
 cy_legco_text <- readRDS("cy_legco_text.rds")
 
@@ -28,57 +18,52 @@ cy_all[unique(names(cy_all)[duplicated(names(cy_all))])] <-
 cy_all %<>% .[!duplicated(names(.))]
 # generate prop tables for each members
 cy_sent_all <- sapply(cy_all, function(x) processing(x))
-cy_sent_pro_est <- cy_sent_all[, colnames(cy_sent_all) %in% pro_est$id]
-cy_sent_non_pro_est <- cy_sent_all[, !colnames(cy_sent_all) %in% pro_est$id]
+# pro-establishment lawmakers name list
+cy_sent_pro_est <- colnames(cy_sent_all)[colnames(cy_sent_all) %in% pro_est$id] %>%
+  sapply(., function(x) members_name %$% NameEng[SpeakerID == x])
 # construct data frame
 cy_sent_all <- data.frame(name = rep(sapply(colnames(cy_sent_all),
                                             function(x) members_name %$% NameEng[SpeakerID == x]),
                                      each = 2),
+                          name_zh = rep(sapply(colnames(cy_sent_all),
+                                            function(x) members_name %$% NameChi[SpeakerID == x]),
+                                     each = 2),
                           prop = as.numeric(cy_sent_all),
-                          sentiment = rep(c("negative", "positive"), ncol(cy_sent_all)))
-cy_sent_pro_est <- data.frame(name = rep(sapply(colnames(cy_sent_pro_est),
-                                                function(x) members_name %$% NameEng[SpeakerID == x]),
-                                         each = 2),
-                              prop = as.numeric(cy_sent_pro_est),
-                              sentiment = rep(c("negative", "positive"), ncol(cy_sent_pro_est)))
-cy_sent_non_pro_est <- data.frame(name = rep(sapply(colnames(cy_sent_non_pro_est),
-                                                    function(x) members_name %$% NameEng[SpeakerID == x]),
-                                             each = 2),
-                                  prop = as.numeric(cy_sent_non_pro_est),
-                                  sentiment = rep(c("negative", "positive"), ncol(cy_sent_non_pro_est))) 
-# sort
+                          sentiment = rep(c("negative", "positive"), ncol(cy_sent_all)),
+                          sentiment_zh = rep(c("負面", "正面"), ncol(cy_sent_all)))
+
+# sort English
 cy_sent_all <- arrange(cy_sent_all, sentiment, prop)
 cy_sent_all$name %<>% factor(., levels = unique(.))
-cy_sent_pro_est <- arrange(cy_sent_pro_est, sentiment, prop)
-cy_sent_pro_est$name %<>% factor(., levels = unique(.))
-cy_sent_non_pro_est <- arrange(cy_sent_non_pro_est, sentiment, prop)
-cy_sent_non_pro_est$name %<>% factor(., levels = unique(.))
-# plot
-colours <- ifelse(cy_sent_all$name %in% cy_sent_pro_est$name, "#D32F2F", "#1976D2")
-g1 <- ggplot(cy_sent_all, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("All") +
-  theme(legend.position = "bottom", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = colours)) +
-  coord_flip()
-g2 <- ggplot(cy_sent_pro_est, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("Pro-establishment") +
-  theme(legend.position = "none", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = "#D32F2F")) +
-  coord_flip()
-g3 <- ggplot(cy_sent_non_pro_est, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("Non-pro-establishment") +
-  theme(legend.position = "none", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = "#1976D2")) +
-  coord_flip()
-glegend <- g_legend(g1)
 
-png("cy.png", width = 18, height = 12, units = "in", res = 600)
-grid.arrange(glegend, arrangeGrob(g1 + theme(legend.position="none"), g2, g3, nrow = 1),
-             top = textGrob("Legislators' Sentiment in CE-attending Sessions\n(CY Leung)",
-                            gp = gpar(fontsize = 18, font = 2)), nrow = 2, heights = c(1, 10))
+# plot English
+colours <- ifelse(cy_sent_all$name %in% cy_sent_pro_est, "#D32F2F", "#1976D2")
+
+png("cy_en.png", width = 1200, height = 800, units = "px")
+ggplot(cy_sent_all, aes(x = name, y = prop, fill = sentiment)) + 
+  geom_bar(position = "fill", stat = "identity") + ylab("Proportion") +
+  ggtitle("Legislators' Sentiment in CE-attended Sessions (CY Leung)") +
+  theme(legend.position = "top", axis.title.x = element_blank(),
+        axis.text.x = element_text(color = colours, angle = 45, hjust = 1),
+        plot.title = element_text(hjust = .5, size = 18),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+dev.off()
+
+# sort Chinese
+cy_sent_all$sentiment_zh %<>% factor(., levels = c("負面", "正面"))
+cy_sent_all <- arrange(cy_sent_all, sentiment_zh, prop)
+cy_sent_all$name_zh %<>% factor(., levels = unique(.))
+
+# plot Chinese
+png("cy_zh.png", width = 1200, height = 800, units = "px")
+ggplot(cy_sent_all, aes(x = name_zh, y = prop, fill = sentiment_zh)) + 
+  geom_bar(position = "fill", stat = "identity") + ylab("比例") + labs(fill = "情感") +
+  ggtitle("議員於行政長官出席立法會會議時表達之情感（梁振英）") +
+  theme(text = element_text(family = "Heiti TC Light"), 
+        legend.position = "top", axis.title.x = element_blank(),
+        axis.text.x = element_text(color = colours, angle = 45, hjust = 1),
+        plot.title = element_text(hjust = .5, size = 18),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
 dev.off()
 
 ###-----Carrie Lam-----
@@ -93,55 +78,50 @@ cl_all[unique(names(cl_all)[duplicated(names(cl_all))])] <- # merge duplicated r
 cl_all %<>% .[!duplicated(names(.))]
 
 cl_sent_all <- sapply(cl_all, function(x) processing(x))
-cl_sent_pro_est <- cl_sent_all[, colnames(cl_sent_all) %in% pro_est$id]
-cl_sent_non_pro_est <- cl_sent_all[, !colnames(cl_sent_all) %in% pro_est$id]
+
+cl_sent_pro_est <- colnames(cl_sent_all)[colnames(cl_sent_all) %in% pro_est$id] %>%
+  sapply(., function(x) members_name %$% NameEng[SpeakerID == x])
 
 cl_sent_all <- data.frame(name = rep(sapply(colnames(cl_sent_all),
                                             function(x) members_name %$% NameEng[SpeakerID == x]),
                                      each = 2),
+                          name_zh = rep(sapply(colnames(cl_sent_all),
+                                               function(x) members_name %$% NameChi[SpeakerID == x]),
+                                        each = 2),
                           prop = as.numeric(cl_sent_all),
-                          sentiment = rep(c("negative", "positive"), ncol(cl_sent_all)))
-cl_sent_pro_est <- data.frame(name = rep(sapply(colnames(cl_sent_pro_est),
-                                                function(x) members_name %$% NameEng[SpeakerID == x]),
-                                         each = 2),
-                              prop = as.numeric(cl_sent_pro_est),
-                              sentiment = rep(c("negative", "positive"), ncol(cl_sent_pro_est)))
-cl_sent_non_pro_est <- data.frame(name = rep(sapply(colnames(cl_sent_non_pro_est),
-                                                    function(x) members_name %$% NameEng[SpeakerID == x]),
-                                             each = 2),
-                                  prop = as.numeric(cl_sent_non_pro_est),
-                                  sentiment = rep(c("negative", "positive"), ncol(cl_sent_non_pro_est))) 
+                          sentiment = rep(c("negative", "positive"), ncol(cl_sent_all)),
+                          sentiment_zh = rep(c("負面", "正面"), ncol(cl_sent_all)))
 
+# sort English
 cl_sent_all <- arrange(cl_sent_all, sentiment, prop)
 cl_sent_all$name %<>% factor(., levels = unique(.))
-cl_sent_pro_est <- arrange(cl_sent_pro_est, sentiment, prop)
-cl_sent_pro_est$name %<>% factor(., levels = unique(.))
-cl_sent_non_pro_est <- arrange(cl_sent_non_pro_est, sentiment, prop)
-cl_sent_non_pro_est$name %<>% factor(., levels = unique(.))
-# plot
-colours <- ifelse(cl_sent_all$name %in% cl_sent_pro_est$name, "#D32F2F", "#1976D2")
-g1 <- ggplot(cl_sent_all, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("All") +
-  theme(legend.position = "top", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = colours)) +
-  coord_flip()
-g2 <- ggplot(cl_sent_pro_est, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("Pro-establishment") +
-  theme(legend.position = "none", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = "#D32F2F")) +
-  coord_flip()
-g3 <- ggplot(cl_sent_non_pro_est, aes(x = name, y = prop, fill = sentiment)) + 
-  geom_bar(position = "fill", stat = "identity") + 
-  ggtitle("Non-pro-establishment") +
-  theme(legend.position = "none", axis.title.y = element_blank(),
-        axis.text.y = element_text(color = "#1976D2")) +
-  coord_flip()
-glegend <- g_legend(g1)
 
-png("cl.png", width = 18, height = 10, units = "in", res = 600)
-grid.arrange(glegend, arrangeGrob(g1 + theme(legend.position="none"), g2, g3, nrow = 1),
-             top = textGrob("Legislators' Sentiment in CE-attending Sessions\n(Carrie Lam)",
-                            gp = gpar(fontsize = 18, font = 2)), nrow = 2, heights = c(1, 10))
+# plot English
+colours <- ifelse(cl_sent_all$name %in% cl_sent_pro_est, "#D32F2F", "#1976D2")
+
+png("cl_en.png", width = 1200, height = 800, units = "px")
+ggplot(cl_sent_all, aes(x = name, y = prop, fill = sentiment)) + 
+  geom_bar(position = "fill", stat = "identity") + ylab("Proportion") +
+  ggtitle("Legislators' Sentiment in CE-attended Sessions (Carrie Lam)") +
+  theme(legend.position = "top", axis.title.x = element_blank(),
+        axis.text.x = element_text(color = colours, angle = 45, hjust = 1),
+        plot.title = element_text(hjust = .5, size = 18),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
+dev.off()
+
+# sort Chinese
+cl_sent_all$sentiment_zh %<>% factor(., levels = c("負面", "正面"))
+cl_sent_all <- arrange(cl_sent_all, sentiment_zh, prop)
+cl_sent_all$name_zh %<>% factor(., levels = unique(.))
+
+# plot Chinese
+png("cl_zh.png", width = 1200, height = 800, units = "px")
+ggplot(cl_sent_all, aes(x = name_zh, y = prop, fill = sentiment_zh)) + 
+  geom_bar(position = "fill", stat = "identity") + ylab("比例") + labs(fill = "情感") +
+  ggtitle("議員於行政長官出席立法會會議時表達之情感（林鄭月娥）") +
+  theme(text = element_text(family = "Heiti TC Light"), 
+        legend.position = "top", axis.title.x = element_blank(),
+        axis.text.x = element_text(color = colours, angle = 45, hjust = 1),
+        plot.title = element_text(hjust = .5, size = 18),
+        plot.margin = unit(c(1, 1, 1, 1), "cm"))
 dev.off()
